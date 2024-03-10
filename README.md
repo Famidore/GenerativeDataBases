@@ -17,3 +17,46 @@ Use it!
 ```bash
 generative-databases --help
 ```
+
+## Types of data
+
+-   [ ] Name
+-   [ ] Last Name
+-   [ ] Full Name
+-   [ ] Email
+-   [ ] Phone
+-   [ ] Address
+-   [ ] City
+-   [ ] Country
+-   [ ] Birthday
+-   [ ] PESEL
+-   [ ] NIP
+-   [ ] REGON
+-   [ ] IBAN
+-   [ ] Company
+-   [ ] Job
+-   [ ] Credit Card
+-   [ ] Color
+-   [ ] Car
+-   [ ] Animal
+-   [ ] Food
+-   [ ] Movie
+-   [ ] Book
+-   [ ] Music
+-   [ ] Game
+-   [ ] Sport
+-   [ ] Hobby
+
+## What it can do
+
+-   [ ] Insert generated data into database
+-   [ ] Generate data and save it to .csv file
+-   [ ] Generate data and save it to .json file
+-   [ ] Generate sql insert statements
+-   [ ] Generate sql create table statements
+
+## Support for SQL databases
+
+-   [ ] PostgreSQL
+-   [ ] MySQL
+-   [ ] SQLite
