@@ -35,7 +35,6 @@ generative-databases --help
 -   [ ] IBAN
 -   [ ] Company
 -   [ ] Job
--   [ ] Credit Card
 -   [ ] Color
 -   [ ] Car
 -   [ ] Animal
@@ -60,3 +59,13 @@ generative-databases --help
 -   [ ] PostgreSQL
 -   [ ] MySQL
 -   [ ] SQLite
+
+## Possibly helpful links
+
+[cli short names](https://typer.tiangolo.com/tutorial/options/name/#cli-option-short-names)
+
+## Kaggle
+
+przejrze workspaces
+
+## dokumentacja na github pages
