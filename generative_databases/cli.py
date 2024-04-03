@@ -88,6 +88,6 @@ def colored():
     """
     Print a colored message.
     """
-    typer.echo("This is a message in green", fg=typer.colors.GREEN)
-    typer.echo("This is a message in red", fg=typer.colors.RED)
-    typer.echo("This is a message in blue", fg=typer.colors.BLUE)
+    typer.echo(typer.style("This is a message in green", fg=typer.colors.GREEN))
+    typer.echo(typer.style("This is a message in red", fg=typer.colors.RED))
+    typer.echo(typer.style("This is a message in blue", fg=typer.colors.BLUE))

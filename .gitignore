@@ -1,4 +1,7 @@
+venv
 .venv
 .vscode/settings.json
 __pycache__
 *.env*.local
+genData
+.idea/

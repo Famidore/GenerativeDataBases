@@ -1,0 +1,1 @@
+https://www.kaggle.com/datasets/ravikanth/poland-postal-codes-zip-state-counties-districts
