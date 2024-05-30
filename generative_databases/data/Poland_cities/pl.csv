@@ -1,5 +1,5 @@
 city,lat,lng,country,iso2,admin_name,capital,population,population_proper
-Warsaw,52.2300,21.0111,Poland,PL,Mazowieckie,primary,1860281,1860281
+Warszawa,52.2300,21.0111,Poland,PL,Mazowieckie,primary,1860281,1860281
 Kraków,50.0614,19.9372,Poland,PL,Małopolskie,admin,804237,804237
 Wrocław,51.1100,17.0325,Poland,PL,Dolnośląskie,admin,672929,672929
 Łódź,51.7769,19.4547,Poland,PL,Łódzkie,admin,670642,670642
