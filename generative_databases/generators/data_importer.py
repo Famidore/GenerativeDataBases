@@ -8,8 +8,7 @@ logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler("generator.log"),
-        logging.StreamHandler()
+        logging.FileHandler("generator.log")
     ]
 )
 logger = logging.getLogger(__name__)
