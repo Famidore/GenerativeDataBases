@@ -66,7 +66,7 @@ class DataBank:
                     regions_admin_info[regions_admin_info['Administrative Division'] == city]['Postal Code'].tolist()
                 city_list.at[idx, 'postal_code'] = postal_codes
 
-            self.localisation = city_list
+            self.localisation = city_list.apply(normalize_text)
             logger.info("Localization data loaded successfully.")
         except Exception as e:
             logger.error("Error loading localization data: %s", str(e))
@@ -83,6 +83,7 @@ class DataBank:
         try:
             self.first_name = pd.read_csv(os.path.join(data_dir_path, "Poland_all_first_last_names",
                                                        "Imiona_nadane_wPolsce_w_latach_2000-2019.csv"))
+            self.first_name = self.first_name.apply(normalize_text)
             logger.info("First names data loaded successfully.")
         except Exception as e:
             logger.error("Error loading first names data: %s", str(e))
@@ -99,6 +100,7 @@ class DataBank:
         try:
             self.last_name = pd.read_csv(os.path.join(data_dir_path, "Poland_all_first_last_names",
                                                       "polish_surnames.txt"), header=None, names=['last_names'])
+            self.last_name = self.last_name.apply(normalize_text)
             logger.info("Last names data loaded successfully.")
         except Exception as e:
             logger.error("Error loading last names data: %s", str(e))
@@ -121,6 +123,7 @@ class DataBank:
 
         try:
             data = pd.read_csv(os.path.abspath(path))
+            data = data.apply(normalize_text)
             logger.info("CSV data loaded successfully from %s", path)
             return data
         except Exception as e:
