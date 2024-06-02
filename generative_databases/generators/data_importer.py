@@ -66,7 +66,7 @@ class DataBank:
                     regions_admin_info[regions_admin_info['Administrative Division'] == city]['Postal Code'].tolist()
                 city_list.at[idx, 'postal_code'] = postal_codes
 
-            self.localisation = city_list.apply(normalize_text)
+            self.localisation = city_list   # .apply(normalize_text)
             logger.info("Localization data loaded successfully.")
         except Exception as e:
             logger.error("Error loading localization data: %s", str(e))
