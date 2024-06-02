@@ -14,7 +14,7 @@ APP_NAME = "generative_databases"
 
 
 @app.command()
-def generate_database():
+def generate():
     """
     Enter parameters to build a database
     """
@@ -94,36 +94,41 @@ def generate_database():
 
     # Database Generation
 
-    typer.echo(typer.style("Generating your database", fg=typer.colors.RED))
+    typer.echo(typer.style("Setting up generator", fg=typer.colors.RED))
     try:
         G = Generator(params_dict=params_dict)
     except Exception as e:
         typer.echo(
             typer.style(
-                "There has been a problem generating database!", fg=typer.colors.RED
+                "There has been a problem setting up database!", fg=typer.colors.RED
             )
         )
         print(e)
     else:
-        typer.echo(
-            typer.style("Database generated Succesfully!", fg=typer.colors.GREEN)
-        )
+        typer.echo(typer.style("Set up ended Succesfully!", fg=typer.colors.GREEN))
 
     # ask for save options
-    if typer.confirm("Do you want to save the database?"):
-        save_dict = {}
-        choices = [
-            "csv",
-            "json",
-            "xml",
-            "excel",
-            "html",
-            "HDF5",
-            "parquet",
-            "feather",
-            "stata",
-            "sql",
-        ]
+    save_dict = {}
+    choices = [
+        "csv",
+        "json",
+        "xml",
+        "excel",
+        "html",
+        "HDF5",
+        "parquet",
+        "feather",
+        "stata",
+        "sql",
+    ]
+    save_dict.update(
+        {
+            str(
+                typer.prompt("Enter a file format", type=click.Choice(choices))
+            ).lower(): typer.prompt("Enter a path for the save file", type=str)
+        }
+    )
+    while typer.confirm("Do you want to save the database in another format/place?"):
         save_dict.update(
             {
                 str(
@@ -131,58 +136,43 @@ def generate_database():
                 ).lower(): typer.prompt("Enter a path for the save file", type=str)
             }
         )
-        while typer.confirm(
-            "Do you want to save the database in another format/place?"
-        ):
-            save_dict.update(
-                {
-                    str(
-                        typer.prompt("Enter a file format", type=click.Choice(choices))
-                    ).lower(): typer.prompt("Enter a path for the save file", type=str)
-                }
+    typer.echo(typer.style("Saving Database!", fg=typer.colors.RED))
+    try:
+        G.generate_and_save(save_dict)
+    except Exception as e:
+        typer.echo(
+            typer.style(
+                "There has been a problem saving database!", fg=typer.colors.RED
             )
-        typer.echo(typer.style("Saving Database!", fg=typer.colors.RED))
-        try:
-            G.generate_and_save(save_dict)
-        except Exception as e:
-            typer.echo(
-                typer.style(
-                    "There has been a problem saving database!", fg=typer.colors.RED
-                )
-            )
-            print(e)
-        else:
-            typer.echo(
-                typer.style("Database saved Succesfully!", fg=typer.colors.GREEN)
-            )
+        )
+        print(e)
+    else:
+        typer.echo(typer.style("Database saved Succesfully!", fg=typer.colors.GREEN))
 
 
-# @app.command()
-# def confirm(
-#     yes: Annotated[
-#         Optional[bool],
-#         typer.Option("--yes", "-y", help="Confirm the operation"),
-#     ] = None
-# ):
-#     """
-#     Confirm playground.
-#     """
+@app.command()
+def about_sources():
+    """
+    Show info about default databases
+    """
 
-#     delete = yes is not None or typer.confirm(
-#         "Do you want to delete the database?",
-#         #   abort=True # if this is set to True, the program will exit if the user answers "no",
-#     )
-#     if delete:
-#         typer.echo("Deleting the database")
-#     else:
-#         typer.echo("Phew! That was close!")
+    pd = {
+        "sample_size": 1,
+        "city_data": " ",
+        "names_data": " ",
+        "last_names_data": " ",
+        "loc_w_prob": True,
+        "names_w_prob": True,
+        "sex_prob": 50,
+        "sec_name_prob": 50,
+        "year_range": [1950, 2016],
+    }
 
+    G2 = Generator(params_dict=pd)
 
-# @app.command()
-# def colored():
-#     """
-#     Print a colored message.
-#     """
-#     typer.echo(typer.style("This is a message in green", fg=typer.colors.GREEN))
-#     typer.echo(typer.style("This is a message in red", fg=typer.colors.RED))
-#     typer.echo(typer.style("This is a message in blue", fg=typer.colors.BLUE))
+    typer.echo(typer.style("Localisation info", fg=typer.colors.GREEN))
+    print(G2.data_storage.localisation.info())
+    typer.echo(typer.style("First Names info", fg=typer.colors.RED))
+    print(G2.data_storage.first_name.info())
+    typer.echo(typer.style("Last Names info", fg=typer.colors.BLUE))
+    print(G2.data_storage.last_name.info())
