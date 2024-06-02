@@ -1,7 +1,6 @@
-import os
 import random
 import numpy as np
-from datetime import date, timedelta
+from datetime import date
 import pandas as pd
 import logging
 import data_importer
@@ -36,6 +35,7 @@ class Generator:
     def __init__(self, sample_size: int, ordered_elements: dict, city_data: str = None, names_data: str = None,
                  last_names_data: str = None):
         self.sample_size = sample_size
+        self.second_name_chance = 0.4
         self.ordered_elements = ordered_elements
         self.data_storage = data_importer.DataBank()
         self.used_pesel_base = []
@@ -60,7 +60,7 @@ class Generator:
             self.data_storage.load_built_in_last_name_data()
             logger.info("Loaded built-in last names data")
 
-    def get_random_name(self, year: int, gender: str, p: bool = True) -> str:
+    def get_random_name(self, year: int, gender: str, p: bool = True):
         """
         Generate a random name based on the year and gender.
 
@@ -101,11 +101,11 @@ class Generator:
             logger.error(f"Error in get_random_name: {e}")
             return None
 
-    def get_random_pesel(self, birth_date: date, gender: str) -> str:
+    def get_random_pesel(self, birth_date: date, gender: str):
         """
-        Generate a random PESEL number based on birth date and gender.
+        Generate a random PESEL number based on birthdate and gender.
 
-        :param birth_date: Birth date.
+        :param birth_date: Birthdate.
         :type birth_date: date
         :param gender: Gender ('M' or 'K').
         :type gender: str
@@ -210,7 +210,7 @@ class Generator:
             df['Second Name'] = df.apply(
                 lambda row: self.get_random_name(row['Birth Date'].year, row['Gender'],
                                                  self.ordered_elements["person"]["name_weighted_probability"])
-                if np.random.rand() < 0.4 else None,
+                if np.random.rand() < self.second_name_chance else None,
                 axis=1
             )
             logger.info("Generated Second Names")
