@@ -4,7 +4,9 @@ from datetime import date
 import pandas as pd
 import logging
 import data_importer
+from sqlalchemy import create_engine
 import radar
+
 
 # Konfiguracja loggera
 logging.basicConfig(
@@ -15,6 +17,7 @@ logging.basicConfig(
     ]
 )
 logger = logging.getLogger(__name__)
+
 
 class Generator:
     """
@@ -248,6 +251,59 @@ class Generator:
             logger.error(f"Error in generate_localisations: {e}")
             return pd.DataFrame()
 
+    def generate_and_save(self, kwargs: dict):
+        """
+        Generate synthetic data and save it to the specified formats.
+
+        :param kwargs: Dictionary specifying output formats and file paths.
+        :type kwargs: dict
+        """
+        try:
+            persons_df = self.generate_persons()
+            localisations_df = self.generate_localisations()
+            result_df = pd.concat([persons_df, localisations_df], axis=1)
+            logger.info("Generated combined DataFrame of persons and localisations")
+
+            for output_type, file_path in kwargs.items():
+                if output_type == "csv":
+                    result_df.to_csv(file_path)
+                    logger.info(f"Saved data to CSV file at {file_path}")
+                elif output_type == "json":
+                    result_df.to_json(file_path, orient='records', lines=True)
+                    logger.info(f"Saved data to JSON file at {file_path}")
+                elif output_type == "xml":
+                    result_df.to_xml(file_path, index=False)
+                    logger.info(f"Saved data to XML file at {file_path}")
+                elif output_type == "excel":
+                    result_df.to_excel(file_path, index=False)
+                    logger.info(f"Saved data to Excel file at {file_path}")
+                elif output_type == "html":
+                    result_df.to_html(file_path, index=False)
+                    logger.info(f"Saved data to HTML file at {file_path}")
+                elif output_type == "HDF5":
+                    result_df.to_hdf(file_path, key='df', mode='w')
+                    logger.info(f"Saved data to HDF5 file at {file_path}")
+                elif output_type == "parquet":
+                    result_df.to_parquet(file_path)
+                    logger.info(f"Saved data to Parquet file at {file_path}")
+                elif output_type == "feather":
+                    result_df.to_feather(file_path)
+                    logger.info(f"Saved data to Feather file at {file_path}")
+                elif output_type == "stata":
+                    result_df.to_stata(file_path)
+                    logger.info(f"Saved data to Stata file at {file_path}")
+                elif output_type == "sql":
+                    engine = create_engine(file_path)
+                    result_df.to_sql('people', con=engine, if_exists='replace', index=False)
+                    logger.info(f"Saved data to SQL database at {file_path}")
+                elif output_type == "pickle":
+                    result_df.to_pickle(file_path)
+                    logger.info(f"Saved data to Pickle file at {file_path}")
+                else:
+                    logger.warning(f"Unknown output type: {output_type}")
+
+        except Exception as e:
+            logger.error(f"Error in generate_and_save: {e}")
 
 if __name__ == "__main__":
     order = {
