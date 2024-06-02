@@ -1,29 +1,9 @@
 from typing import Annotated, Optional
 import typer
-from .data import name as gen_name, Gender
 from pathlib import Path
 
 app = typer.Typer()
 APP_NAME = "generative_databases"
-
-
-@app.callback()
-def config():
-    """
-    This is a CLI tool to generate databases.
-    """
-    app_dir = typer.get_app_dir(APP_NAME)
-    config_path: Path = Path(app_dir) / "config.json"
-    if not config_path.is_file():
-        print("Config file doesn't exist yet")
-
-
-@app.callback()
-def callback():
-    """
-    This is a CLI tool to generate databases.
-    """
-    typer.echo("Welcome to the generative databases CLI tool")
 
 
 @app.command()
@@ -42,15 +22,15 @@ def load():
     typer.echo("Loading the database")
 
 
-@app.command()
-def name(
-    sex: Annotated[Gender, typer.Option("--gender", "-g", help="Select a gender")]
-):
-    """
-    Generate a name.
-    """
-    res = gen_name(sex)
-    typer.echo(f"Generated name: {res}")
+# @app.command()
+# def name(
+#     sex: Annotated[Gender, typer.Option("--gender", "-g", help="Select a gender")]
+# ):
+#     """
+#     Generate a name.
+#     """
+#     res = gen_name(sex)
+#     typer.echo(f"Generated name: {res}")
 
 
 @app.command()
