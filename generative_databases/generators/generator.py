@@ -3,7 +3,7 @@ import numpy as np
 from datetime import date
 import pandas as pd
 import logging
-import data_importer
+from generative_databases.generators import data_importer
 from sqlalchemy import create_engine
 import radar
 
@@ -11,10 +11,8 @@ import radar
 # Konfiguracja loggera
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler("generator.log")
-    ]
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    handlers=[logging.FileHandler("generator.log")],
 )
 logger = logging.getLogger(__name__)
 
@@ -22,42 +20,35 @@ logger = logging.getLogger(__name__)
 class Generator:
     """
     Generator class for creating synthetic data.
-
-    :param sample_size: Number of samples to generate.
-    :type sample_size: int
-    :param ordered_elements: Configuration for data generation.
-    :type ordered_elements: dict
-    :param city_data: Path to CSV file containing city data.
-    :type city_data: str, optional
-    :param names_data: Path to CSV file containing names data.
-    :type names_data: str, optional
-    :param last_names_data: Path to CSV file containing last names data.
-    :type last_names_data: str, optional
     """
 
-    def __init__(self, sample_size: int, ordered_elements: dict, city_data: str = None, names_data: str = None,
-                 last_names_data: str = None):
-        self.sample_size = sample_size
-        self.second_name_chance = 0.4
-        self.ordered_elements = ordered_elements
+    def __init__(self, params_dict: dict):
+        self.sample_size = params_dict["sample_size"]
+        self.second_name_chance = params_dict["sec_name_prob"]
         self.data_storage = data_importer.DataBank()
         self.used_pesel_base = []
-        if city_data:
+        city_data = params_dict["city_data"]
+        names_data = params_dict["names_data"]
+        last_names_data = params_dict["last_names_data"]
+        self.params_dict = params_dict
+        if city_data and city_data != " ":
             self.data_storage.localisation = self.data_storage.load_csv_data(city_data)
             logger.info(f"Loaded city data from {city_data}")
         else:
             self.data_storage.load_built_in_localisation_data()
             logger.info("Loaded built-in city data")
 
-        if names_data:
+        if names_data and names_data != " ":
             self.data_storage.first_name = self.data_storage.load_csv_data(names_data)
             logger.info(f"Loaded names data from {names_data}")
         else:
             self.data_storage.load_built_in_names_data()
             logger.info("Loaded built-in names data")
 
-        if last_names_data:
-            self.data_storage.last_name = self.data_storage.load_csv_data(last_names_data)
+        if last_names_data and last_names_data != " ":
+            self.data_storage.last_name = self.data_storage.load_csv_data(
+                last_names_data
+            )
             logger.info(f"Loaded last names data from {last_names_data}")
         else:
             self.data_storage.load_built_in_last_name_data()
@@ -78,25 +69,32 @@ class Generator:
         """
         try:
             if p:
-                min_year = self.data_storage.first_name['Year'].min()
-                max_year = self.data_storage.first_name['Year'].max()
+                min_year = self.data_storage.first_name["Year"].min()
+                max_year = self.data_storage.first_name["Year"].max()
 
                 if year < min_year:
                     year = min_year
                 elif year > max_year:
                     year = max_year
                 names = self.data_storage.first_name[
-                    (self.data_storage.first_name['Year'] == year) & (self.data_storage.first_name['Gender'] == gender)]
+                    (self.data_storage.first_name["Year"] == year)
+                    & (self.data_storage.first_name["Gender"] == gender)
+                ]
                 if not names.empty:
-                    name = np.random.choice(names['Name'], p=names['Number'] / names['Number'].sum())
-                    logger.info(f"Generated random name: {name} for year: {year} and gender: {gender}")
+                    name = np.random.choice(
+                        names["Name"], p=names["Number"] / names["Number"].sum()
+                    )
+                    logger.info(
+                        f"Generated random name: {name} for year: {year} and gender: {gender}"
+                    )
                     return name
                 return None
             else:
                 names = self.data_storage.first_name[
-                    (self.data_storage.first_name['Gender'] == gender)]
+                    (self.data_storage.first_name["Gender"] == gender)
+                ]
                 if not names.empty:
-                    name = np.random.choice(names['Name'])
+                    name = np.random.choice(names["Name"])
                     logger.info(f"Generated random name: {name} for gender: {gender}")
                     return name
                 return None
@@ -121,14 +119,20 @@ class Generator:
             start_century = 18
 
             if birth_date.year < start_century * 100:
-                raise ValueError("Provided birth_date doesn't allow to generate PESEL number")
+                raise ValueError(
+                    "Provided birth_date doesn't allow to generate PESEL number"
+                )
 
             # add first two digits
             pesel_digits.append(str(birth_date.year)[-2])
             pesel_digits.append(str(birth_date.year)[-1])
 
             # add third and fourth digits
-            pesel_month = month_pesel_start + (((birth_date.year // 100) - start_century) * 20) % 100 + birth_date.month
+            pesel_month = (
+                month_pesel_start
+                + (((birth_date.year // 100) - start_century) * 20) % 100
+                + birth_date.month
+            )
             if pesel_month < 10:
                 pesel_digits.append(0)
             else:
@@ -162,7 +166,9 @@ class Generator:
                 control_sum = 0
 
                 for number in range(10):
-                    control_sum += int(pesel_digits[number]) * control_digit_weights[number]
+                    control_sum += (
+                        int(pesel_digits[number]) * control_digit_weights[number]
+                    )
                 control_modulo = control_sum % 10
                 if control_modulo == 0:
                     pesel_digits.append(0)
@@ -171,7 +177,7 @@ class Generator:
 
                 if len(pesel_digits) != 11:
                     raise ValueError("Generated PESEL is longer than 11 digits!")
-                final_pesel = ''.join(map(str, pesel_digits))
+                final_pesel = "".join(map(str, pesel_digits))
                 if final_pesel not in self.used_pesel_base:
                     self.used_pesel_base.append(final_pesel)
                     logger.info(f"Generated PESEL number: {final_pesel}")
@@ -188,38 +194,57 @@ class Generator:
         :rtype: pd.DataFrame
         """
         try:
-            start_date = date(self.ordered_elements["person"]["year_range"][0], 1, 1)
-            end_date = date(self.ordered_elements["person"]["year_range"][1], 12, 31)
+            logger.info(self.params_dict)
+            start_date = date(self.params_dict["year_range"][0], 1, 1)
+            end_date = date(self.params_dict["year_range"][1], 12, 31)
 
             # generate gender, birth_date and last_name
             basic_data = {
-                'Birth Date': np.array(
-                    [radar.random_datetime(start=start_date, stop=end_date) for _ in range(self.sample_size)]),
-                'Gender': np.random.choice(['M', 'K'], self.sample_size, p=[0.5, 0.5]),
-                'Last Name': np.random.choice(self.data_storage.last_name['last_names'], self.sample_size)
+                "Birth Date": np.array(
+                    [
+                        radar.random_datetime(start=start_date, stop=end_date)
+                        for _ in range(self.sample_size)
+                    ]
+                ),
+                "Gender": np.random.choice(["M", "K"], self.sample_size, p=[0.5, 0.5]),
+                "Last Name": np.random.choice(
+                    self.data_storage.last_name["last_names"], self.sample_size
+                ),
             }
             df = pd.DataFrame(basic_data)
             logger.info("Generated basic person data (Birth Date, Gender, Last Name)")
 
             # generate Name
-            df['Name'] = df.apply(
-                lambda row: self.get_random_name(row['Birth Date'].year, row['Gender'],
-                                                 self.ordered_elements["person"]["name_weighted_probability"]),
-                axis=1
+            df["Name"] = df.apply(
+                lambda row: self.get_random_name(
+                    row["Birth Date"].year,
+                    row["Gender"],
+                    self.params_dict["names_w_prob"],
+                ),
+                axis=1,
             )
             logger.info("Generated Names")
 
             # generate Second Name
-            df['Second Name'] = df.apply(
-                lambda row: self.get_random_name(row['Birth Date'].year, row['Gender'],
-                                                 self.ordered_elements["person"]["name_weighted_probability"])
-                if np.random.rand() < self.second_name_chance else None,
-                axis=1
+            df["Second Name"] = df.apply(
+                lambda row: (
+                    self.get_random_name(
+                        row["Birth Date"].year,
+                        row["Gender"],
+                        self.params_dict["names_w_prob"],
+                    )
+                    if np.random.rand() < self.second_name_chance
+                    else None
+                ),
+                axis=1,
             )
             logger.info("Generated Second Names")
 
             # generate PESEL
-            df['Pesel Number'] = df.apply(lambda row: self.get_random_pesel(row['Birth Date'], row['Gender']), axis=1)
+            df["Pesel Number"] = df.apply(
+                lambda row: self.get_random_pesel(row["Birth Date"], row["Gender"]),
+                axis=1,
+            )
             logger.info("Generated PESEL numbers")
 
             return df
@@ -235,16 +260,26 @@ class Generator:
         :rtype: pd.DataFrame
         """
         try:
-            if self.ordered_elements["localisation"]["weighted_probability"]:
-                weights = self.data_storage.localisation["population"] / self.data_storage.localisation[
-                    "population"].sum()
-                result_df = self.data_storage.localisation.sample(n=self.sample_size, weights=weights, replace=True)
-                result_df["postal_code"] = result_df["postal_code"].apply(lambda x: random.choice(x) if x else None)
+            if self.params_dict["loc_w_prob"]:
+                weights = (
+                    self.data_storage.localisation["population"]
+                    / self.data_storage.localisation["population"].sum()
+                )
+                result_df = self.data_storage.localisation.sample(
+                    n=self.sample_size, weights=weights, replace=True
+                )
+                result_df["postal_code"] = result_df["postal_code"].apply(
+                    lambda x: random.choice(x) if x else None
+                )
                 logger.info("Generated localisations with weighted probability")
                 return result_df
             else:
-                result_df = self.data_storage.localisation.sample(n=self.sample_size, replace=True)
-                result_df["postal_code"] = result_df["postal_code"].apply(lambda x: random.choice(x) if x else None)
+                result_df = self.data_storage.localisation.sample(
+                    n=self.sample_size, replace=True
+                )
+                result_df["postal_code"] = result_df["postal_code"].apply(
+                    lambda x: random.choice(x) if x else None
+                )
                 logger.info("Generated localisations without weighted probability")
                 return result_df
         except Exception as e:
@@ -261,15 +296,22 @@ class Generator:
         try:
             persons_df = self.generate_persons()
             localisations_df = self.generate_localisations()
-            result_df = pd.concat([persons_df, localisations_df], axis=1)
+
+            localisations_df = localisations_df.reset_index(drop=True)
+            persons_df = persons_df.reset_index(drop=True)
+
+            result_df = pd.concat(
+                [persons_df, localisations_df], axis=1, ignore_index=True
+            )
+
             logger.info("Generated combined DataFrame of persons and localisations")
 
             for output_type, file_path in kwargs.items():
                 if output_type == "csv":
-                    result_df.to_csv(file_path)
+                    result_df.to_csv(file_path, encoding="utf-8")
                     logger.info(f"Saved data to CSV file at {file_path}")
                 elif output_type == "json":
-                    result_df.to_json(file_path, orient='records', lines=True)
+                    result_df.to_json(file_path, orient="records", lines=True)
                     logger.info(f"Saved data to JSON file at {file_path}")
                 elif output_type == "xml":
                     result_df.to_xml(file_path, index=False)
@@ -280,8 +322,8 @@ class Generator:
                 elif output_type == "html":
                     result_df.to_html(file_path, index=False)
                     logger.info(f"Saved data to HTML file at {file_path}")
-                elif output_type == "HDF5":
-                    result_df.to_hdf(file_path, key='df', mode='w')
+                elif output_type == "hdf5":
+                    result_df.to_hdf(file_path, key="df", mode="w")
                     logger.info(f"Saved data to HDF5 file at {file_path}")
                 elif output_type == "parquet":
                     result_df.to_parquet(file_path)
@@ -294,7 +336,9 @@ class Generator:
                     logger.info(f"Saved data to Stata file at {file_path}")
                 elif output_type == "sql":
                     engine = create_engine(file_path)
-                    result_df.to_sql('people', con=engine, if_exists='replace', index=False)
+                    result_df.to_sql(
+                        "people", con=engine, if_exists="replace", index=False
+                    )
                     logger.info(f"Saved data to SQL database at {file_path}")
                 elif output_type == "pickle":
                     result_df.to_pickle(file_path)
@@ -305,15 +349,11 @@ class Generator:
         except Exception as e:
             logger.error(f"Error in generate_and_save: {e}")
 
+
 if __name__ == "__main__":
     order = {
-        "localisation": {
-            "weighted_probability": True
-        },
-        "person": {
-            "year_range": [1950, 2015],
-            "name_weighted_probability": True
-        },
+        "localisation": {"weighted_probability": True},
+        "person": {"year_range": [1950, 2015], "name_weighted_probability": True},
     }
     generator = Generator(1000, order)
     persons = generator.generate_persons()

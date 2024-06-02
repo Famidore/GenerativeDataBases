@@ -1,8 +1,11 @@
 from typing import Annotated, Optional
 import typer
+import click
 from pathlib import Path
 import os
+
 from generative_databases.generators.generator import Generator
+from generative_databases.generators import data_importer
 
 params_dict = {}
 
@@ -11,24 +14,34 @@ APP_NAME = "generative_databases"
 
 
 @app.command()
-def enter_params():
+def generate_database():
+    """
+    Enter parameters to build a database
+    """
     params_dict.update(
         {"sample_size": typer.prompt("What sample size is required?", type=int)}
     )
     params_dict.update(
-        {"city_data": typer.prompt("Enter a path to city data source", type=str)}
+        {
+            "city_data": typer.prompt(
+                "Enter a path to city data source. Space for default",
+                type=str,
+            )
+        }
     )
     params_dict.update(
         {
             "names_data": typer.prompt(
-                "Enter a path to first names data source", type=str
+                "Enter a path to first names data source. Space for default",
+                type=str,
             )
         }
     )
     params_dict.update(
         {
             "last_names_data": typer.prompt(
-                "Enter a path to last names data source", type=str
+                "Enter a path to last names data source. Space for default",
+                type=str,
             )
         }
     )
@@ -79,16 +92,69 @@ def enter_params():
     for k in params_dict.keys():
         typer.echo(f"{k}, {params_dict[k]}")
 
+    # Database Generation
 
-# @app.command()
-# def generate_database():
-#     G = Generator(
-#         params_dict["sample_size"],
-#         "temp",
-#         params_dict["city_data"],
-#         params_dict["names_data"],
-#         params_dict["last_names_data"],
-#     )
+    typer.echo(typer.style("Generating your database", fg=typer.colors.RED))
+    try:
+        G = Generator(params_dict=params_dict)
+    except Exception as e:
+        typer.echo(
+            typer.style(
+                "There has been a problem generating database!", fg=typer.colors.RED
+            )
+        )
+        print(e)
+    else:
+        typer.echo(
+            typer.style("Database generated Succesfully!", fg=typer.colors.GREEN)
+        )
+
+    # ask for save options
+    if typer.confirm("Do you want to save the database?"):
+        save_dict = {}
+        choices = [
+            "csv",
+            "json",
+            "xml",
+            "excel",
+            "html",
+            "HDF5",
+            "parquet",
+            "feather",
+            "stata",
+            "sql",
+        ]
+        save_dict.update(
+            {
+                str(
+                    typer.prompt("Enter a file format", type=click.Choice(choices))
+                ).lower(): typer.prompt("Enter a path for the save file", type=str)
+            }
+        )
+        while typer.confirm(
+            "Do you want to save the database in another format/place?"
+        ):
+            save_dict.update(
+                {
+                    str(
+                        typer.prompt("Enter a file format", type=click.Choice(choices))
+                    ).lower(): typer.prompt("Enter a path for the save file", type=str)
+                }
+            )
+        typer.style("Saving Database!", fg=typer.colors.RED)
+        try:
+            G.generate_and_save(save_dict)
+        except Exception as e:
+            typer.echo(
+                typer.style(
+                    "There has been a problem saving database!", fg=typer.colors.RED
+                )
+            )
+            print(e)
+        else:
+            typer.echo(
+                typer.style("Database saved Succesfully!", fg=typer.colors.GREEN)
+            )
 
 
 @app.command()
