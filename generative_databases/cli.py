@@ -141,7 +141,7 @@ def generate_database():
                     ).lower(): typer.prompt("Enter a path for the save file", type=str)
                 }
             )
-        typer.style("Saving Database!", fg=typer.colors.RED)
+        typer.echo(typer.style("Saving Database!", fg=typer.colors.RED))
         try:
             G.generate_and_save(save_dict)
         except Exception as e:
@@ -157,32 +157,32 @@ def generate_database():
             )
 
 
-@app.command()
-def confirm(
-    yes: Annotated[
-        Optional[bool],
-        typer.Option("--yes", "-y", help="Confirm the operation"),
-    ] = None
-):
-    """
-    Confirm playground.
-    """
+# @app.command()
+# def confirm(
+#     yes: Annotated[
+#         Optional[bool],
+#         typer.Option("--yes", "-y", help="Confirm the operation"),
+#     ] = None
+# ):
+#     """
+#     Confirm playground.
+#     """
 
-    delete = yes is not None or typer.confirm(
-        "Do you want to delete the database?",
-        #   abort=True # if this is set to True, the program will exit if the user answers "no",
-    )
-    if delete:
-        typer.echo("Deleting the database")
-    else:
-        typer.echo("Phew! That was close!")
+#     delete = yes is not None or typer.confirm(
+#         "Do you want to delete the database?",
+#         #   abort=True # if this is set to True, the program will exit if the user answers "no",
+#     )
+#     if delete:
+#         typer.echo("Deleting the database")
+#     else:
+#         typer.echo("Phew! That was close!")
 
 
-@app.command()
-def colored():
-    """
-    Print a colored message.
-    """
-    typer.echo(typer.style("This is a message in green", fg=typer.colors.GREEN))
-    typer.echo(typer.style("This is a message in red", fg=typer.colors.RED))
-    typer.echo(typer.style("This is a message in blue", fg=typer.colors.BLUE))
+# @app.command()
+# def colored():
+#     """
+#     Print a colored message.
+#     """
+#     typer.echo(typer.style("This is a message in green", fg=typer.colors.GREEN))
+#     typer.echo(typer.style("This is a message in red", fg=typer.colors.RED))
+#     typer.echo(typer.style("This is a message in blue", fg=typer.colors.BLUE))

@@ -24,9 +24,10 @@ class Generator:
 
     def __init__(self, params_dict: dict):
         self.sample_size = params_dict["sample_size"]
-        self.second_name_chance = params_dict["sec_name_prob"]
+        self.second_name_chance = params_dict["sec_name_prob"] * 0.01
         self.data_storage = data_importer.DataBank()
         self.used_pesel_base = []
+        self.woman = params_dict["sex_prob"] * 0.01
         city_data = params_dict["city_data"]
         names_data = params_dict["names_data"]
         last_names_data = params_dict["last_names_data"]
@@ -206,7 +207,9 @@ class Generator:
                         for _ in range(self.sample_size)
                     ]
                 ),
-                "Gender": np.random.choice(["M", "K"], self.sample_size, p=[0.5, 0.5]),
+                "Gender": np.random.choice(
+                    ["M", "K"], self.sample_size, p=[1 - self.woman, self.woman]
+                ),
                 "Last Name": np.random.choice(
                     self.data_storage.last_name["last_names"], self.sample_size
                 ),
@@ -300,15 +303,16 @@ class Generator:
             localisations_df = localisations_df.reset_index(drop=True)
             persons_df = persons_df.reset_index(drop=True)
 
-            result_df = pd.concat(
-                [persons_df, localisations_df], axis=1, ignore_index=True
+            result_df = pd.concat([persons_df, localisations_df], axis=1)
+            result_df = result_df.applymap(
+                lambda x: x.lower() if isinstance(x, str) else x
             )
 
             logger.info("Generated combined DataFrame of persons and localisations")
 
             for output_type, file_path in kwargs.items():
                 if output_type == "csv":
-                    result_df.to_csv(file_path, encoding="utf-8")
+                    result_df.to_csv(file_path)
                     logger.info(f"Saved data to CSV file at {file_path}")
                 elif output_type == "json":
                     result_df.to_json(file_path, orient="records", lines=True)
